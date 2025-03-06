@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="jswarm-pso_2_08">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jars/jswarm-pso_2_08.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/jars/jswarm-pso_2_08.jar!/doc" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/jars/jswarm-pso_2_08.jar!/" />
+    </SOURCES>
+  </library>
+</component>

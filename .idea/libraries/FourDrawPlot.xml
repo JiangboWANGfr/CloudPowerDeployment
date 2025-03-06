@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="FourDrawPlot">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/jars/FourDrawPlot.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

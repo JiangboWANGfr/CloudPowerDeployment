@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>groupId</groupId>
+    <artifactId>PowerDeployment</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>8</source>
+                    <target>8</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.cloudbus</groupId>
+            <artifactId>cloudsim</artifactId>
+            <version>4.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/cloudsim-4.0.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.cloudbus</groupId>
+            <artifactId>cloudsim-examples</artifactId>
+            <version>4.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/cloudsim-examples-4.0.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>local.libs</groupId>
+            <artifactId>fourdrawplot</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/FourDrawPlot.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>local.libs</groupId>
+            <artifactId>javabuilder</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/javabuilder.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>local.libs</groupId>
+            <artifactId>jswarm-pso</artifactId>
+            <version>2.08</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/jswarm-pso_2_08.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>local.libs</groupId>
+            <artifactId>twodrawplot</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/libs/TwoDrawPlot.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>deeplearning4j-core</artifactId>
+            <version>1.0.0-beta7</version>
+        </dependency>
+
+        <!-- ND4J 后端（CPU 版本） -->
+        <dependency>
+            <groupId>org.nd4j</groupId>
+            <artifactId>nd4j-native-platform</artifactId>
+            <version>1.0.0-beta7</version>
+        </dependency>
+
+        <!-- DQN 相关库（如果要用 DQN） -->
+        <dependency>
+            <groupId>org.deeplearning4j</groupId>
+            <artifactId>rl4j-core</artifactId>
+            <version>1.0.0-beta7</version>
+        </dependency>
+
+
+
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.17</version>
+        </dependency>
+
+    </dependencies>
+</project>
