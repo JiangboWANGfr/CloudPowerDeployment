@@ -1,0 +1,6 @@
+.idea/*
+.history/*
+target/*
+./.DS_Store
+target/classes/*
+target/maven-status/*

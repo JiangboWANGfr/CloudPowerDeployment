@@ -61,31 +61,31 @@ public class AlgorithmCompare {
             List<Double> ddqnlstmListslavList = ddqnlstmListresults.get("allslav");
             List<Double> ddqnlstmListbalanceList = ddqnlstmListresults.get("allbalance");
 
-            for (int i = 1; i <= ddqnlstmListpowerList.size(); i++) {
+                for (int i = 1; i <= ddqnlstmListpowerList.size(); i++) {
                 x.set(i, i);
                 y2.set(i, getExponentialSmoothing(ddqnlstmListpowerList).get(i-1));
             }
 
-            GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
-             Map<String, List<Double>> greedyListresults = greedyScheduleTest.execute();
-                List<Double> greedyPowerList = greedyListresults.get("allpower");
-                List<Double> greedySlavList = greedyListresults.get("allslav");
-                List<Double> greedyBalanceList = greedyListresults.get("allbalance");
-            for (int i = 1; i <= greedyPowerList.size(); i++) {
-                x.set(i, i);
-                y3.set(i, greedyPowerList.get(i - 1));
-            }
-
-            LearningAndInitScheduleTest fairScheduleTest = new LearningAndInitScheduleTest();
-            Map<String, List<Double>> fairListresults = fairScheduleTest.execute();
-            List<Double> fairPowerList = fairListresults.get("allpower");
-            List<Double> fairSlavList = fairListresults.get("allslav");
-            List<Double> fairBalanceList = fairListresults.get("allbalance");
-
-            for (int i = 1; i <= fairPowerList.size(); i++) {
-                x.set(i, i);
-                y4.set(i, fairPowerList.get(i - 1));
-            }
+//            GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
+//             Map<String, List<Double>> greedyListresults = greedyScheduleTest.execute();
+//                List<Double> greedyPowerList = greedyListresults.get("allpower");
+//                List<Double> greedySlavList = greedyListresults.get("allslav");
+//                List<Double> greedyBalanceList = greedyListresults.get("allbalance");
+//            for (int i = 1; i <= greedyPowerList.size(); i++) {
+//                x.set(i, i);
+//                y3.set(i, greedyPowerList.get(i - 1));
+//            }
+//
+//            LearningAndInitScheduleTest fairScheduleTest = new LearningAndInitScheduleTest();
+//            Map<String, List<Double>> fairListresults = fairScheduleTest.execute();
+//            List<Double> fairPowerList = fairListresults.get("allpower");
+//            List<Double> fairSlavList = fairListresults.get("allslav");
+//            List<Double> fairBalanceList = fairListresults.get("allbalance");
+//
+//            for (int i = 1; i <= fairPowerList.size(); i++) {
+//                x.set(i, i);
+//                y4.set(i, fairPowerList.get(i - 1));
+//            }
 
             // test using fack data
 //            List<Double> learningPowerList = new ArrayList<>();
