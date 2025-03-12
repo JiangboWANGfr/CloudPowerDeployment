@@ -10,6 +10,7 @@ import newcloud.ExceuteData.LearningAndNoConvergeScheduleTest;
 import newcloud.ExceuteData.LearningScheduleTest;
 
 import java.util.List;
+import java.util.Map;
 
 import static newcloud.Constants.Iteration;
 
@@ -35,14 +36,18 @@ public class StateConverge {
                     MWComplexity.REAL);
 
             LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
-            List<Double> learningPowerList = learningScheduleTest.execute();
+            Map<String, List<Double>> learningList = learningScheduleTest.execute();
+            List<Double> learningPowerList = learningList.get("allpower");
+            List<Double> learningSlavList = learningList.get("allslav");
+            List<Double> learningBalanceList = learningList.get("allbalance");
             for (int i = 1; i <= learningPowerList.size(); i++) {
                 x.set(i, i);
                 y1.set(i, learningPowerList.get(i - 1));
             }
 
             LearningAndNoConvergeScheduleTest learningAndNoConvergeScheduleTest = new LearningAndNoConvergeScheduleTest();
-            List<Double> lamdaPowerList = learningAndNoConvergeScheduleTest.execute();
+             List<Double> lamdaPowerList = learningAndNoConvergeScheduleTest.execute();
+
             for (int i = 1; i <= lamdaPowerList.size(); i++) {
                 x.set(i, i);
                 y2.set(i, lamdaPowerList.get(i - 1));

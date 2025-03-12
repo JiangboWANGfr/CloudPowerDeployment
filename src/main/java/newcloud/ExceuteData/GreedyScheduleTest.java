@@ -9,10 +9,7 @@ import org.cloudbus.cloudsim.examples.power.Helper;
 import org.cloudbus.cloudsim.examples.power.planetlab.PlanetLabHelper;
 import org.cloudbus.cloudsim.power.PowerHost;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static newcloud.Constants.*;
 import static newcloud.Constants.HOST_MIPS;
@@ -36,7 +33,7 @@ public class GreedyScheduleTest {
     private static VmAllocationAssignerGready vmAllocationAssignerGready;
     private static double smallestdata = Double.MAX_VALUE;
 
-    public List<Double> execute() throws Exception {
+    public Map<String, List<Double>> execute() throws Exception {
         for (int i = 0; i < Iteration; i++) {
             CloudSim.init(1, Calendar.getInstance(), false);
             broker = createBroker();
@@ -78,7 +75,14 @@ public class GreedyScheduleTest {
             }
         }
         System.out.println("最小值：" + smallestdata);
-        return PowerDatacenterGready.allpower;
+        // return PowerDatacenterGready.allpower;
+//        return PowerDatacenterGready.allslav;
+//        return PowerDatacenterGready.allbalance;
+          Map<String, List<Double>> result = new HashMap<>();
+            result.put("allpower", PowerDatacenterGready.allpower);
+            result.put("allslav", PowerDatacenterGready.allslav);
+            result.put("allbalance", PowerDatacenterGready.allbalance);
+            return result;
     }
 
     public List<Integer> getNumByType() {

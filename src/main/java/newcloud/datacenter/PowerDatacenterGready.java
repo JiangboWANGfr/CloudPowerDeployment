@@ -76,6 +76,12 @@ public class PowerDatacenterGready extends PowerDatacenter {
     private String historycpu;
 
     public static List<Double> allpower = new ArrayList<>();
+    private double totalSLAV = 0.0;
+    private double totalBalance = 0.0;
+
+    public static List<Double> allslav = new ArrayList<>();
+    public static List<Double> allbalance = new ArrayList<>();
+
 
     /**
      * Instantiates a new PowerDatacenter.
@@ -116,6 +122,74 @@ public class PowerDatacenterGready extends PowerDatacenter {
         }
     }
 
+    private double calculateSLAV() {
+        double slav = 0.0;
+
+        // 计算时间步长
+        double T_PERIOD = CloudSim.clock() - getLastProcessTime();
+        if (T_PERIOD <= 0) {
+            return slav; // 避免负数或零值导致的计算异常
+        }
+
+        for (Vm vm : getVmList()) {
+            double requestedMips = vm.getCurrentRequestedTotalMips(); // 当前 VM 请求的总 MIPS
+            double allocatedMips = 0.0;
+
+            Host host = getVmAllocationPolicy().getHost(vm); // 获取 VM 的宿主机
+            if (host != null) {
+                List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm); // 获取已分配的 MIPS
+                if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+                    for (double mips : allocatedMipsList) {
+                        allocatedMips += mips;
+                    }
+                }
+            }
+
+            double slav_i = (requestedMips - allocatedMips) * T_PERIOD; // 计算单个 VM 的 SLAV
+            slav += slav_i; // 累加所有 VM 的 SLAV
+
+            System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips 
+                + " allocatedMips: " + allocatedMips 
+                + " SLAV_i: " + slav_i);
+        }
+
+        System.out.println("Total SLAV: " + slav);
+        return slav;
+    }
+    
+    private double calculateBalanceDegree() {
+        double balanceDegreeVairance = 0;
+        double meanUtil = 0;
+        double totalUtil = 0;
+        int activeHosts = 0;
+
+        // 计算所有活跃主机的 CPU 平均利用率
+        for (PowerHost host : this.<PowerHost>getHostList()) {
+            if (host.getUtilizationOfCpu() > 0) {
+                totalUtil += host.getUtilizationOfCpu();
+                activeHosts++;
+            }
+        }
+    
+        if (activeHosts == 0) return 0; // 避免除零错误
+        meanUtil =totalUtil / activeHosts;
+
+        // 计算负载均衡度（标准差）
+        for (PowerHost host : this.<PowerHost>getHostList()) {
+            if (host.getUtilizationOfCpu() > 0) {
+                balanceDegreeVairance += Math.pow(host.getUtilizationOfCpu() - meanUtil, 2);
+            }
+        }
+
+        // 计算 T_PERIOD（时间步长）
+        double T_PERIOD = CloudSim.clock() - getLastProcessTime();
+        if (T_PERIOD <= 0) {
+            return 0; // 避免负值或零值
+        }
+        double BalanceDegree = Math.sqrt(balanceDegreeVairance / activeHosts) * T_PERIOD;
+        System.out.println("meanUtil:" + meanUtil + " balanceDegreeVairance:" + balanceDegreeVairance + " activeHosts:" + activeHosts + " T_PERIOD:" + T_PERIOD + " BalanceDegree:" + BalanceDegree);   
+        return BalanceDegree;
+    }
 
     @Override
     protected void processVmCreate(SimEvent ev, boolean ack) {
@@ -304,9 +378,19 @@ public class PowerDatacenterGready extends PowerDatacenter {
         }
 
         setPower(getPower() + timeFrameDatacenterEnergy);
+
+        // **计算并存储当前 SLAV 和 BalanceDegree**
+        double currentSLAV = calculateSLAV();
+        double currentBalance = calculateBalanceDegree();
+
+        totalSLAV += currentSLAV;
+        totalBalance += currentBalance;
+
         checkCloudletCompletion();
         if (currentTime > outputTime) {
             allpower.add(getPower());
+            allslav.add(totalSLAV);
+            allbalance.add(totalBalance);
         }
         /** Remove completed VMs **/
 //        for (PowerHost host : this.<PowerHost>getHostList()) {

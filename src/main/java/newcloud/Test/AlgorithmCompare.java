@@ -9,7 +9,7 @@ import newcloud.ExceuteData.*;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import java.util.*;
 import static newcloud.Constants.Iteration;
 
 
@@ -25,8 +25,7 @@ public class AlgorithmCompare {
         MWNumericArray y2 = null; // 存放y值的数组
         MWNumericArray y3 = null; // 存放y值的数组
         MWNumericArray y4 = null; // 存放y值的数组
-        MWNumericArray y5 = null; // 存放y值的数组
-        
+
 
         Plotter thePlot = null; // plotter类的实例（在MatLab编译时，新建的类）
         int n = Iteration; // 作图点数
@@ -44,113 +43,132 @@ public class AlgorithmCompare {
                     MWComplexity.REAL);
             y4 = MWNumericArray.newInstance(dims, MWClassID.DOUBLE,
                     MWComplexity.REAL);
-            y5 = MWNumericArray.newInstance(dims, MWClassID.DOUBLE,
-                    MWComplexity.REAL);
 
+           LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
+           Map<String, List<Double>> learningListresults = learningScheduleTest.execute();
+           List<Double> learningPowerList = learningListresults.get("allpower");
+              List<Double> learningSlavList = learningListresults.get("allslav");
+                List<Double> learningBalanceList = learningListresults.get("allbalance");
 
-            // LearningLamdaScheduleTest learningLamdaScheduleTest = new LearningLamdaScheduleTest();
-            // List<Double> lamdaPowerList = learningLamdaScheduleTest.execute();
-            // for (int i = 1; i <= lamdaPowerList.size(); i++) {
-            //     x.set(i, i);
-            //     y2.set(i, lamdaPowerList.get(i - 1));
-            // }
+           for (int i = 1; i <= learningPowerList.size(); i++) {
+               x.set(i, i);
+               y1.set(i, getExponentialSmoothing(learningPowerList).get(i - 1));
+           }
 
-            // GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
-            // List<Double> greedyPowerList = greedyScheduleTest.execute();
-            // for (int i = 1; i <= greedyPowerList.size(); i++) {
-            //     x.set(i, i);
-            //     y3.set(i, greedyPowerList.get(i - 1));
-            // }
+            DdqnlstmScheduleTest ddqnlstmScheduleTest = new DdqnlstmScheduleTest();
+            Map<String, List<Double>> ddqnlstmListresults = ddqnlstmScheduleTest.execute();
+            List<Double> ddqnlstmListpowerList = ddqnlstmListresults.get("allpower");
+            List<Double> ddqnlstmListslavList = ddqnlstmListresults.get("allslav");
+            List<Double> ddqnlstmListbalanceList = ddqnlstmListresults.get("allbalance");
 
-//             LearningAndInitScheduleTest fairScheduleTest = new LearningAndInitScheduleTest();
-//             List<Double> fairPowerList = fairScheduleTest.execute();
-//             for (int i = 1; i <= fairPowerList.size(); i++) {
-//                 x.set(i, i);
-//                 y4.set(i, fairPowerList.get(i - 1));
-//             }
-            
-             DdqnlstmScheduleTest ddqnlstmScheduleTest = new DdqnlstmScheduleTest();
-             List<Double> ddqnlstmPowerList = ddqnlstmScheduleTest.execute();
-             for (int i = 1; i <= ddqnlstmPowerList.size(); i++) {
-                 x.set(i, i);
-                 y5.set(i, ddqnlstmPowerList.get(i - 1));
-             }
-//            LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
-//            List<Double> learningPowerList = learningScheduleTest.execute();
-//            for (int i = 1; i <= learningPowerList.size(); i++) {
-//                x.set(i, i);
-//                y1.set(i, learningPowerList.get(i - 1));
-//            }
+            for (int i = 1; i <= ddqnlstmListpowerList.size(); i++) {
+                x.set(i, i);
+                y2.set(i, getExponentialSmoothing(ddqnlstmListpowerList).get(i-1));
+            }
+
+            GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
+             Map<String, List<Double>> greedyListresults = greedyScheduleTest.execute();
+                List<Double> greedyPowerList = greedyListresults.get("allpower");
+                List<Double> greedySlavList = greedyListresults.get("allslav");
+                List<Double> greedyBalanceList = greedyListresults.get("allbalance");
+            for (int i = 1; i <= greedyPowerList.size(); i++) {
+                x.set(i, i);
+                y3.set(i, greedyPowerList.get(i - 1));
+            }
+
+            LearningAndInitScheduleTest fairScheduleTest = new LearningAndInitScheduleTest();
+            Map<String, List<Double>> fairListresults = fairScheduleTest.execute();
+            List<Double> fairPowerList = fairListresults.get("allpower");
+            List<Double> fairSlavList = fairListresults.get("allslav");
+            List<Double> fairBalanceList = fairListresults.get("allbalance");
+
+            for (int i = 1; i <= fairPowerList.size(); i++) {
+                x.set(i, i);
+                y4.set(i, fairPowerList.get(i - 1));
+            }
 
             // test using fack data
-            List<Double> learningPowerList = new ArrayList<>();
-            List<Double> lamdaPowerList = new ArrayList<>();
-            List<Double> greedyPowerList = new ArrayList<>();
-            List<Double> fairPowerList = new ArrayList<>();
+//            List<Double> learningPowerList = new ArrayList<>();
+//            List<Double> lamdaPowerList = new ArrayList<>();
+//            List<Double> greedyPowerList = new ArrayList<>();
+//            List<Double> fairPowerList = new ArrayList<>();
 //            List<Double> ddqnlstmPowerList = new ArrayList<>();
 
-            for (int i = 1; i <= 100; i++) {
-                learningPowerList.add(1000.0 / i);
-                lamdaPowerList.add(1000.0 / i + 10);
-                greedyPowerList.add(1000.0 / i + 20);
-                fairPowerList.add(1000.0 / i + 30);
+            for (int i = 1; i <= Iteration; i++) {
+//                lamdaPowerList.add(1000.0 / i + 10);
+//                greedyPowerList.add(1000.0 / i + 20);
+//                fairPowerList.add(1000.0 / i + 30);
+//                learningPowerList.add(1000.0 / i);
 //                ddqnlstmPowerList.add(1000.0 / i + 40);
             }
-            
-//
-            System.out.println(getAverageResult(learningPowerList, learningPowerList.size() / 10));
-//            System.out.println(getAverageResult(lamdaPowerList, lamdaPowerList.size() / 10));
-//            System.out.println(getAverageResult(greedyPowerList, greedyPowerList.size() / 10));
-//            System.out.println(getAverageResult(fairPowerList, fairPowerList.size() / 10));
-            System.out.println(getAverageResult(ddqnlstmPowerList, ddqnlstmPowerList.size() / 10));
 
-//            RandomScheduleTest randomScheduleTest = new RandomScheduleTest();
-//            List<Double> randomPowerList = randomScheduleTest.execute();
-//            for (int i = 1; i <= randomPowerList.size(); i++) {
-//                x.set(i, i);
-//                y4.set(i, randomPowerList.get(i - 1));
-//            }
-
-//            LearningAndInitScheduleTest learningAndInitScheduleTest = new LearningAndInitScheduleTest();
-//            List<Double> learningAndInitPowerList = learningAndInitScheduleTest.execute();
-//            for (int i = 1; i <= learningAndInitPowerList.size(); i++) {
-//                x.set(i, i);
-//                y4.set(i, learningAndInitPowerList.get(i - 1));
-//            }
+//            System.out.println(getAverage(learningPowerList));
+//            System.out.println(getAverage(ddqnlstmPowerListpowerList));
+//            System.out.println(getAverage(greedyPowerList));
+//            System.out.println(getAverage(fairPowerList));
             // 初始化plotter的对象
             thePlot = new Plotter();
 
             // 作图
-             thePlot.drawplot(x, y1, "Q-Learning", y2, "Q-Learning(Lamda)", y3, "Greedy", y5, "DDQN", "迭代次数", "能耗", "各类算法随迭代次数的能耗变化");
+             thePlot.drawplot(x, y1, "Q-Learning", y2, "DDQN-LSTM", y3, "Greedy", y4, "PSO", "迭代次数", "Reward", "各类算法奖励随迭代次数的变化");
 //            thePlot.drawplot(x, y4, "Q-Learning", y5, "DDQNLSTM", "迭代次数", "能耗", "各类算法随迭代次数的能耗变化");
-            thePlot.waitForFigures();
-        } catch (Exception e) {
+            thePlot.waitForFigures();}
+        catch (Exception e) {
             System.out.println("Exception: " + e.toString());
-        } finally {
-            // 释放本地资源
-//            MWArray.disposeArray(x);
-//            MWArray.disposeArray(y1);
-//            MWArray.disposeArray(y2);
-//            MWArray.disposeArray(y3);
-            MWArray.disposeArray(y4);
-            MWArray.disposeArray(y5);
-            if (thePlot != null)
-                thePlot.dispose();
+            } finally {
+                // 释放本地资源
+                MWArray.disposeArray(x);
+                MWArray.disposeArray(y1);
+                MWArray.disposeArray(y2);
+                MWArray.disposeArray(y3);
+                MWArray.disposeArray(y4);
+                if (thePlot != null)
+                    thePlot.dispose();
+            }
         }
 
-    }
 
     public static List<Double> getAverageResult(List<Double> datas, int step) {
-        List<Double> temp = new ArrayList<>();
-        int num = datas.size() / step;
-        for (int i = 0; i < num; i++) {
+        List<Double> smoothedData = new ArrayList<>();
+        for (int i = 0; i <= datas.size() - step; i++) {
             double total = 0;
             for (int j = 0; j < step; j++) {
-                total += datas.get(0);
-                datas.remove(0);
+                total += datas.get(i + j);
             }
-            temp.add(total / step);
+            smoothedData.add(total / step);
         }
-        return temp;
+        System.out.printf("smoothedData:%s\n", smoothedData);
+        return smoothedData;
     }
+
+
+    public static List<Double> getExponentialSmoothing(List<Double> datas) {
+        List<Double> smoothedData = new ArrayList<>();
+        double alpha = 0.3;
+        if (datas.isEmpty()) return smoothedData;
+
+        double prev = datas.get(0); // 初始化为第一个数据点
+        smoothedData.add(prev);
+
+        for (int i = 1; i < datas.size(); i++) {
+            double smoothedValue = alpha * datas.get(i) + (1 - alpha) * prev;
+            smoothedData.add(smoothedValue);
+            prev = smoothedValue;
+        }
+//        System.out.printf("smoothedData:%s\n", smoothedData);
+        return smoothedData;
+    }
+
+    public static double getAverage(List<Double> datas) {
+        if (datas == null || datas.isEmpty()) {
+            return 0.0; // 避免空列表异常
+        }
+        double sum = 0;
+        for (double value : datas) {
+            sum += value;
+        }
+        return sum / datas.size();
+    }
+
+
 }

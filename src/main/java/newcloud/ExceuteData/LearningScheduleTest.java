@@ -10,10 +10,7 @@ import org.cloudbus.cloudsim.examples.power.planetlab.PlanetLabHelper;
 import org.cloudbus.cloudsim.power.PowerHost;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static newcloud.Constants.*;
 import static newcloud.policy.VmAllocationAssignerLearning.QList;
@@ -39,7 +36,7 @@ public class LearningScheduleTest {
     double LEARNING_ALPHA = 0.8; // 强化学习算法的α值
     double LEARNING_EPSILON = 0.2; // 强化学习算法的ε值
 
-    public List<Double> execute() throws Exception {
+    public Map<String, List<Double>> execute() throws Exception {
 
         for (int i = 0; i < Iteration; i++) {
             LEARNING_EPSILON = 1 / (i  + 1);
@@ -84,7 +81,17 @@ public class LearningScheduleTest {
             }
         }
         System.out.println("最小值：" + smallestdata);
-        return PowerDatacenterLearning.allpower;
+//        System.out.printf("QList." + vmAllocationAssignerLearning.QList.size() + "\n");
+//        System.out.println("QList." + vmAllocationAssignerLearning.QList.size() + "\n");
+//        System.out.println("QList." + vmAllocationAssignerLearning.QList);
+        //  return PowerDatacenterLearning.allpower;
+//         return PowerDatacenterLearning.allslav;
+//        return PowerDatacenterLearning.allbalance;
+        Map<String, List<Double>> result = new HashMap<>();
+        result.put("allpower", PowerDatacenterLearning.allpower);
+        result.put("allslav", PowerDatacenterLearning.allslav);
+        result.put("allbalance", PowerDatacenterLearning.allbalance);
+        return result;
     }
 
     public double changeEpsilon(double LEARNING_EPSILON, int i) {

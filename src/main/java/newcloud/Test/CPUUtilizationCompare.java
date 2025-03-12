@@ -16,23 +16,23 @@ import static newcloud.Constants.Iteration;
 
 public class CPUUtilizationCompare {
     public static void main(String[] args) throws Exception {
+//
+//        LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
+//        List<Double> learningPowerList = learningScheduleTest.execute();
+//        List<Integer> result1 = learningScheduleTest.getNumByType();
+//
+//        LearningLamdaScheduleTest learningLamdaScheduleTest = new LearningLamdaScheduleTest();
+//        List<Double> lamdaPowerList = learningLamdaScheduleTest.execute();
+//        List<Integer> result2 = learningLamdaScheduleTest.getNumByType();
+//
+//        GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
+//        List<Double> greedyPowerList = greedyScheduleTest.execute();
+//        List<Integer> result3 = greedyScheduleTest.getNumByType();
+//
 
-        LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
-        List<Double> learningPowerList = learningScheduleTest.execute();
-        List<Integer> result1 = learningScheduleTest.getNumByType();
 
-        LearningLamdaScheduleTest learningLamdaScheduleTest = new LearningLamdaScheduleTest();
-        List<Double> lamdaPowerList = learningLamdaScheduleTest.execute();
-        List<Integer> result2 = learningLamdaScheduleTest.getNumByType();
-
-        GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
-        List<Double> greedyPowerList = greedyScheduleTest.execute();
-        List<Integer> result3 = greedyScheduleTest.getNumByType();
-
-
-
-        System.out.println(result1);
-        System.out.println(result2);
-        System.out.println(result3);
+//        System.out.println(result1);
+//        System.out.println(result2);
+//        System.out.println(result3);
     }
 }

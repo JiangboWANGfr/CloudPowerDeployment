@@ -11,6 +11,7 @@ import TwoDrawPlot.TwoPlotter;
 
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static newcloud.Constants.Iteration;
@@ -37,10 +38,17 @@ public class TimeReliability {
                     MWComplexity.REAL);
 
             LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
-            List<Double> learningPowerList = learningScheduleTest.execute();
-            for (int i = 1; i <= learningPowerList.size(); i++) {
+            Map<String, List<Double>> learningPowerList = learningScheduleTest.execute();
+//            List<Double> ddqnlstmPowerListpowerList = ddqnlstmPowerListresults.get("allpower");
+//            List<Double> ddqnlstmPowerListslavList = ddqnlstmPowerListresults.get("allslav");
+//            List<Double> ddqnlstmPowerListbalanceList = ddqnlstmPowerListresults.get("allbalance");
+            List<Double> ddqnlstmPowerListpowerList = learningPowerList.get("allpower");
+            List<Double> ddqnlstmPowerListslavList = learningPowerList.get("allslav");
+            List<Double> ddqnlstmPowerListbalanceList = learningPowerList.get("allbalance");
+
+            for (int i = 1; i <= ddqnlstmPowerListpowerList.size(); i++) {
                 x.set(i, i);
-                y1.set(i, learningPowerList.get(i - 1));
+                y1.set(i, ddqnlstmPowerListpowerList.get(i - 1));
             }
 
             LearningAndNoConvergeScheduleTest learningAndNoTimeReliabilityScheduleTest = new LearningAndNoConvergeScheduleTest();

@@ -116,6 +116,8 @@ public class LearningLamdaScheduleTest {
         }
         System.out.println("最小值：" + smallestdata);
         return PowerDatacenterLearningLamda.allpower;
+        // return PowerDatacenterLearningLamda.allslav;
+        // return PowerDatacenterLearningLamda.allbalance;
     }
 
     public List<Integer> getNumByType() {

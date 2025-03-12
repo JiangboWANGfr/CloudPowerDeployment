@@ -20,13 +20,14 @@ import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.dataset.DataSet;
 
 import static newcloud.Constants.NUMBER_OF_HOSTS;
+import static newcloud.Constants.*;
 import java.util.*;
 
 public class VmAllocationAssignerDDQNLSTM {
     private final double LEARNING_GAMMA = 0.9; // 折扣因子
     private final double LEARNING_ALPHA = 0.0001; // 学习率
     private final int NUM_HOSTS = 300; // 输入维度（可根据主机数调整）
-    private final int TIME_STEP = 5;
+//    private final int TIME_STEP = 1;
     private final int outputSize = 300; // 输出维度（可根据 VM 目标主机数调整）
     private final int hiddenLayerSize = 64; // 隐藏层大小
     private final int timeSteps; // LSTM time_steps
@@ -80,12 +81,20 @@ public class VmAllocationAssignerDDQNLSTM {
                         .activation(Activation.IDENTITY)
                         .build())
 
-                .setInputType(InputType.recurrent(NUM_HOSTS,TIME_STEP)) // 关键：确保 LSTM 处理序列输入
+//                .setInputType(InputType.recurrent(NUM_HOSTS,TIME_STEP)) // 关键：确保 LSTM 处理序列输入
                 .build()
         );
 
         net.init();
         return net;
+    }
+
+    /**
+     * 返回训练步数
+     * @return 训练步数
+     */
+    public int getTrainingSteps() {
+        return trainingStep;
     }
 
     /**
@@ -196,13 +205,13 @@ public class VmAllocationAssignerDDQNLSTM {
 
         System.out.println("stateArray: " + Arrays.toString(stateArray.shape()));
         System.out.println("targetQValues: " + Arrays.toString(targetQValues.shape()));
-        INDArray lastStateArray = stateArray.get(NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.point(TIME_STEP - 1));
+        INDArray lastStateArray = stateArray.get(NDArrayIndex.all(), NDArrayIndex.all(), NDArrayIndex.point(TIME_STEPS - 1));
         lastStateArray = lastStateArray.reshape(batchSize, NUM_HOSTS, 1); // 确保 3D 输入
 
         model.fit(new DataSet(lastStateArray, targetQValues));
-        updateEpsilon();
+//        updateEpsilon();
 
-        if(trainingStep % 20 == 0) {
+        if(trainingStep % 5 == 0) {
             System.out.println("Target Q-values: " + targetQValues);
             targetModel.setParams(model.params());
         }

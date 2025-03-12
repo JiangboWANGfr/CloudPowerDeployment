@@ -56,7 +56,7 @@ public class Constants   {
     public static final int CLOUDSIM_RESTART = 102;
 
 
-    public static final int Iteration = 100;
+    public static final int Iteration = 10;
 
     public static final int NUMBER_OF_HOSTS = 300;
 
@@ -65,7 +65,7 @@ public class Constants   {
     public static final int outputTime = 600;
 
 
-    public static String inputFolder = "C:\\Users\\admin\\Desktop\\parttimeJOB\\RL_cloudsim\\CloudPowerDeployment-master\\CloudPowerDeployment-master\\src\\main\\resources\\datas\\200";
+    public static String inputFolder = "C:\\Users\\admin\\Desktop\\parttimeJOB\\RL_cloudsim\\CloudPowerDeployment-master\\CloudPowerDeployment-master\\src\\main\\resources\\datas\\50";
 
     //pso
     public static final int POPULATION_SIZE = 300; // Number of Particles.

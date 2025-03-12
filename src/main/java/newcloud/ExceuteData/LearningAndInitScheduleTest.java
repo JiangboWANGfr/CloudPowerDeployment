@@ -10,10 +10,7 @@ import org.cloudbus.cloudsim.examples.power.planetlab.PlanetLabHelper;
 import org.cloudbus.cloudsim.power.PowerHost;
 
 import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static newcloud.Constants.*;
 import static newcloud.policy.VmAllocationAssignerLearningAndInit.QList;
@@ -36,7 +33,7 @@ public class LearningAndInitScheduleTest {
     private static VmAllocationAssignerLearningAndInit vmAllocationAssignerLearningAndInit;
     private static double smallestdata = Double.MAX_VALUE;
 
-    public List<Double> execute() throws Exception {
+    public Map<String, List<Double>> execute() throws Exception {
         double LEARNING_GAMMA = 0.9; // 强化学习算法的γ值
         double LEARNING_ALPHA = 0.8; // 强化学习算法的α值
         double LEARNING_EPSILON = 0.5; // 强化学习算法的ε值
@@ -84,7 +81,14 @@ public class LearningAndInitScheduleTest {
             }
         }
         System.out.println("最小值：" + smallestdata);
-        return PowerDatacenterLearningAndInit.allpower;
+        // return PowerDatacenterLearningAndInit.allpower;
+//        return PowerDatacenterLearningAndInit.allslav;
+//        return PowerDatacenterLearningAndInit.allbalance;
+        Map<String, List<Double>> result = new HashMap<>();
+        result.put("allpower", PowerDatacenterLearningAndInit.allpower);
+        result.put("allslav", PowerDatacenterLearningAndInit.allslav);
+        result.put("allbalance", PowerDatacenterLearningAndInit.allbalance);
+        return result;
     }
 
     public List<Integer> getNumByType() {

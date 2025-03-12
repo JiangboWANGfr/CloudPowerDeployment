@@ -1,10 +1,9 @@
 package newcloud;
 
-import newcloud.ExceuteData.DDQNLSTMScheduleTest1;
 import newcloud.ExceuteData.DdqnlstmScheduleTest;
-import newcloud.ExceuteData.LearningScheduleTest;
 
 import java.util.List;
+import java.util.Map;
 
 import static newcloud.Constants.Iteration;
 
@@ -20,7 +19,7 @@ public class test2 {
 //        DDQNLSTMScheduleTest1 ddqnlstmscheduletest = new DDQNLSTMScheduleTest1();
 //         List<Double> learningPowerList = ddqnlstmscheduletest.execute();
         DdqnlstmScheduleTest test = new DdqnlstmScheduleTest();
-        List<Double> learningPowerlist = test.execute();
+        Map<String, List<Double>> learningPowerlist = test.execute();
 //        for (int i = 0; i < learningPowerList.size(); i++) {
 //            total += learningPowerList.get(i);
 //        }
