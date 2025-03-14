@@ -2,15 +2,14 @@ package newcloud.ExceuteData;
 
 import newcloud.*;
 import newcloud.datacenter.PowerDatacenterDDQN;
+import newcloud.datacenter.PowerDatacenterDDQNLSTM;
 import newcloud.policy.VmAllocationAssignerDDQN;
 import org.cloudbus.cloudsim.*;
 import org.cloudbus.cloudsim.core.CloudSim;
 import org.cloudbus.cloudsim.examples.power.planetlab.PlanetLabHelper;
 import org.cloudbus.cloudsim.power.PowerHost;
 
-import java.util.Calendar;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static newcloud.Constants.*;
 
@@ -24,10 +23,10 @@ public class DdqnScheduleTest {
     private static VmAllocationAssignerDDQN vmAllocationAssignerDDQN;
     private static double smallestdata = Double.MAX_VALUE;
 
-    public List<Double> execute() throws Exception {
+    public Map<String, List<Double>> execute() throws Exception {
         for (int i = 0; i < Iteration; i++) {
             double epsilon = 1.0 / (i + 1); // 探索率逐渐降低
-            vmAllocationAssignerDDQN = new VmAllocationAssignerDDQN(epsilon,TIME_STEPS); // 使用 DDQN
+            vmAllocationAssignerDDQN = new VmAllocationAssignerDDQN(epsilon); // 使用 DDQN
             CloudSim.init(1, Calendar.getInstance(), false);
 
             broker = createBroker();
@@ -55,16 +54,16 @@ public class DdqnScheduleTest {
             CloudSim.stopSimulation();
             System.out.println(i + "----------------------------------");
         }
+        Map<String, List<Double>> resultMap = new HashMap<>();
+        resultMap.put("allpower", PowerDatacenterDDQN.allpower);
+        resultMap.put("allslav", PowerDatacenterDDQN.highMipsRatioHistory);
+        resultMap.put("allbalance", PowerDatacenterDDQN.allbalance);
+        resultMap.put("allreward", PowerDatacenterDDQN.allepochreward);
+        List<Double> reversedList = new ArrayList<>(PowerDatacenterDDQN.allepochreward);
+        Collections.reverse(reversedList);
+        resultMap.put("allreward", reversedList);
 
-        for (int i = 0; i < PowerDatacenterDDQN.allpower.size(); i++) {
-            System.out.println(PowerDatacenterDDQN.allpower.get(i));
-            if (PowerDatacenterDDQN.allpower.get(i) < smallestdata) {
-                smallestdata = PowerDatacenterDDQN.allpower.get(i);
-            }
-        }
-        System.out.printf("training steps:"+ vmAllocationAssignerDDQN.getTrainingSteps());
-        System.out.println("最小能耗：" + smallestdata);
-        return PowerDatacenterDDQN.allpower;
+        return resultMap;
     }
 
     public PowerDatacenterDDQN createDatacenter(
@@ -91,7 +90,7 @@ public class DdqnScheduleTest {
                 costPerMem,
                 costPerStorage,
                 costPerBw);
-        PowerDatacenterDDQN datacenter = new PowerDatacenterDDQN("DDQNLSTM", characteristics, vmAllocationPolicy, new LinkedList<Storage>(), 300, vmAllocationAssignerDDQN);
+        PowerDatacenterDDQN datacenter = new PowerDatacenterDDQN("DDQN", characteristics, vmAllocationPolicy, new LinkedList<Storage>(), 300, vmAllocationAssignerDDQN);
         return datacenter;
     }
 

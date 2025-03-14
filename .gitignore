@@ -4,3 +4,14 @@ target/*
 ./.DS_Store
 target/classes/*
 target/maven-status/*
+.vscode/*
+.settings/*
+*.iml
+target/*
+CloudPowerDeployment-master/target/*
+CloudPowerDeployment-master/.idea/*
+CloudPowerDeployment-master/.history/*
+CloudPowerDeployment-master/.settings/*
+CloudPowerDeployment-master/.vscode/*
+CloudPowerDeployment-master/.DS_Store
+CloudPowerDeployment-master/target/classes/*

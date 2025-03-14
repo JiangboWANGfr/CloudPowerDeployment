@@ -74,13 +74,6 @@ public class LearningScheduleTest {
         System.out.println(QList.size());
         System.out.println(vmList.size());
 //        GenExcel.getInstance().genExcel();
-        for (int i = 0; i < PowerDatacenterLearning.allpower.size(); i++) {
-            System.out.println(PowerDatacenterLearning.allpower.get(i));
-            if (PowerDatacenterLearning.allpower.get(i) < smallestdata) {
-                smallestdata = PowerDatacenterLearning.allpower.get(i);
-            }
-        }
-        System.out.println("最小值：" + smallestdata);
 //        System.out.printf("QList." + vmAllocationAssignerLearning.QList.size() + "\n");
 //        System.out.println("QList." + vmAllocationAssignerLearning.QList.size() + "\n");
 //        System.out.println("QList." + vmAllocationAssignerLearning.QList);
@@ -89,8 +82,9 @@ public class LearningScheduleTest {
 //        return PowerDatacenterLearning.allbalance;
         Map<String, List<Double>> result = new HashMap<>();
         result.put("allpower", PowerDatacenterLearning.allpower);
-        result.put("allslav", PowerDatacenterLearning.allslav);
+        result.put("allslav", PowerDatacenterLearning.highMipsRatioHistory);
         result.put("allbalance", PowerDatacenterLearning.allbalance);
+        result.put("allreward", PowerDatacenterLearning.allepochreward);
         return result;
     }
 

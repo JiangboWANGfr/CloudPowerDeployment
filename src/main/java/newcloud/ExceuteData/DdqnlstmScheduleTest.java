@@ -1,5 +1,5 @@
 package newcloud.ExceuteData;
-
+import java.util.Collections;
 import newcloud.*;
 import newcloud.datacenter.PowerDatacenterDDQNLSTM;
 import newcloud.policy.VmAllocationAssignerDDQNLSTM;
@@ -55,18 +55,6 @@ public class DdqnlstmScheduleTest {
             CloudSim.stopSimulation();
             System.out.println(i + "----------------------------------");
         }
-
-        for (int i = 0; i < PowerDatacenterDDQNLSTM.allpower.size(); i++) {
-            System.out.println(PowerDatacenterDDQNLSTM.allpower.get(i));
-            if (PowerDatacenterDDQNLSTM.allpower.get(i) < smallestdata) {
-                smallestdata = PowerDatacenterDDQNLSTM.allpower.get(i);
-            }
-        }
-        for (int i = 0; i < PowerDatacenterDDQNLSTM.allepochreward.size(); i++) {
-            System.out.println(PowerDatacenterDDQNLSTM.allepochreward.get(i));
-        }
-        System.out.printf("training steps:"+ vmAllocationAssignerDDQNLSTM.getTrainingSteps());
-        System.out.println("最小能耗：" + smallestdata);
 //        return PowerDatacenterDDQNLSTM.allpower;
 //         return PowerDatacenterDDQNLSTM.allslav;
 //        return PowerDatacenterDDQNLSTM.allbalance;
@@ -74,8 +62,11 @@ public class DdqnlstmScheduleTest {
         // 构建 Map 返回所有列表
         Map<String, List<Double>> resultMap = new HashMap<>();
         resultMap.put("allpower", PowerDatacenterDDQNLSTM.allpower);
-        resultMap.put("allslav", PowerDatacenterDDQNLSTM.allslav);
+        resultMap.put("allslav", PowerDatacenterDDQNLSTM.highMipsRatioHistory);
         resultMap.put("allbalance", PowerDatacenterDDQNLSTM.allbalance);
+        List<Double> reversedList = new ArrayList<>(PowerDatacenterDDQNLSTM.allepochreward);
+        Collections.reverse(reversedList);
+        resultMap.put("allreward", reversedList);
 
         return resultMap;
 

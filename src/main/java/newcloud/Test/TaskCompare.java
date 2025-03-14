@@ -10,6 +10,7 @@ import newcloud.ExceuteData.LearningAndInitScheduleTest;
 import newcloud.ExceuteData.LearningLamdaScheduleTest;
 import newcloud.ExceuteData.LearningScheduleTest;
 import newcloud.ExceuteData.DdqnlstmScheduleTest;
+import newcloud.ExceuteData.DdqnScheduleTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,16 +30,20 @@ public class TaskCompare {
         List<Double> a2 = new ArrayList<>();
         List<Double> a3 = new ArrayList<>();
         List<Double> a4 = new ArrayList<>();
+        List<Double> a5 = new ArrayList<>();
 
         List<Double> slav1 = new ArrayList<>();
         List<Double> slav2 = new ArrayList<>();
         List<Double> slav3 = new ArrayList<>();
         List<Double> slav4 = new ArrayList<>();
+        List<Double> slav5 = new ArrayList<>();
 
         List<Double> balance1 = new ArrayList<>();
         List<Double> balance2 = new ArrayList<>();
         List<Double> balance3 = new ArrayList<>();
         List<Double> balance4 = new ArrayList<>();
+        List<Double> balance5 = new ArrayList<>();
+
 
         try {
             FileWriter powerWriter = new FileWriter("allpower.txt");
@@ -48,11 +53,15 @@ public class TaskCompare {
             for (String file : folders) {
                 inputFolder = ss + file;
 
-                LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
-                Map<String, List<Double>> learningResults = learningScheduleTest.execute();
 
                 DdqnlstmScheduleTest ddqnlstmScheduleTest = new DdqnlstmScheduleTest();
-                Map<String, List<Double>> ddqnResults = ddqnlstmScheduleTest.execute();
+                Map<String, List<Double>> ddqnlstmResults = ddqnlstmScheduleTest.execute();
+
+                DdqnScheduleTest ddqnScheduleTest = new DdqnScheduleTest();
+                Map<String, List<Double>> ddqnResults = ddqnScheduleTest.execute();
+
+                LearningScheduleTest learningScheduleTest = new LearningScheduleTest();
+                Map<String, List<Double>> learningResults = learningScheduleTest.execute();
 
                 GreedyScheduleTest greedyScheduleTest = new GreedyScheduleTest();
                 Map<String, List<Double>> greedyResults = greedyScheduleTest.execute();
@@ -60,42 +69,52 @@ public class TaskCompare {
                 LearningAndInitScheduleTest psoScheduleTest = new LearningAndInitScheduleTest();
                 Map<String, List<Double>> psoResults = psoScheduleTest.execute();
 
+                
+
                 // 计算 allpower、allslav、allbalance 的平均值
-                double avgLearningPower = getAverage(learningResults.get("allpower"));
+                double avgDdqnlstmPower = getAverage(ddqnlstmResults.get("allpower"));
                 double avgDdqnPower = getAverage(ddqnResults.get("allpower"));
+                double avgLearningPower = getAverage(learningResults.get("allpower"));
                 double avgGreedyPower = getAverage(greedyResults.get("allpower"));
                 double avgPsoPower = getAverage(psoResults.get("allpower"));
 
-                double avgLearningSlav = getAverage(learningResults.get("allslav"));
+                double avgDdqnlstmSlav = getAverage(ddqnlstmResults.get("allslav"));
                 double avgDdqnSlav = getAverage(ddqnResults.get("allslav"));
+                double avgLearningSlav = getAverage(learningResults.get("allslav"));
                 double avgGreedySlav = getAverage(greedyResults.get("allslav"));
                 double avgPsoSlav = getAverage(psoResults.get("allslav"));
 
-                double avgLearningBalance = getAverage(learningResults.get("allbalance"));
+                double avgDdqnlstmBalance = getAverage(ddqnlstmResults.get("allbalance"));
                 double avgDdqnBalance = getAverage(ddqnResults.get("allbalance"));
+                double avgLearningBalance = getAverage(learningResults.get("allbalance"));
                 double avgGreedyBalance = getAverage(greedyResults.get("allbalance"));
                 double avgPsoBalance = getAverage(psoResults.get("allbalance"));
 
+
+
                 // 保存到 List
-                a1.add(avgLearningPower);
+                a1.add(avgDdqnlstmPower);
                 a2.add(avgDdqnPower);
-                a3.add(avgGreedyPower);
-                a4.add(avgPsoPower);
+                a3.add(avgLearningPower);
+                a4.add(avgGreedyPower);
+                a5.add(avgPsoPower);
 
-                slav1.add(avgLearningSlav);
+                slav1.add(avgDdqnlstmSlav);
                 slav2.add(avgDdqnSlav);
-                slav3.add(avgGreedySlav);
-                slav4.add(avgPsoSlav);
+                slav3.add(avgLearningSlav);
+                slav4.add(avgGreedySlav);
+                slav5.add(avgPsoSlav);
 
-                balance1.add(avgLearningBalance);
-                balance2.add(avgDdqnBalance);
-                balance3.add(avgGreedyBalance);
-                balance4.add(avgPsoBalance);
+                balance2.add(avgDdqnlstmBalance);
+                balance1.add(avgDdqnBalance);
+                balance3.add(avgLearningBalance);
+                balance4.add(avgGreedyBalance);
+                balance5.add(avgPsoBalance);
 
                 // 写入文件
-                powerWriter.write(String.format("%s %.4f %.4f %.4f %.4f%n", file, avgLearningPower, avgDdqnPower, avgGreedyPower, avgPsoPower));
-                slavWriter.write(String.format("%s %.4f %.4f %.4f %.4f%n", file, avgLearningSlav, avgDdqnSlav, avgGreedySlav, avgPsoSlav));
-                balanceWriter.write(String.format("%s %.4f %.4f %.4f %.4f%n", file, avgLearningBalance, avgDdqnBalance, avgGreedyBalance, avgPsoBalance));
+                powerWriter.write(String.format("%s %.4f %.4f %.4f %.4f %.4f%n", file,avgDdqnlstmPower , avgDdqnPower, avgLearningPower,avgGreedyPower, avgPsoPower));
+                slavWriter.write(String.format("%s %.4f %.4f %.4f %.4f %.4f%n", file,avgDdqnlstmSlav, avgDdqnSlav, avgLearningSlav, avgGreedySlav, avgPsoSlav));
+                balanceWriter.write(String.format("%s %.4f %.4f %.4f %.4f %.4f%n", file,avgDdqnlstmBalance, avgDdqnBalance,avgLearningBalance, avgGreedyBalance, avgPsoBalance));
             }
 
             // 关闭文件

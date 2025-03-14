@@ -80,10 +80,13 @@ public class PowerDatacenterLearning extends PowerDatacenter {
     public static List<Double> allpower = new ArrayList<>();
     private double totalSLAV = 0.0;
     private double totalBalance = 0.0;
+    private double totalepochReward = 0.0;
+
 
     public static List<Double> allslav = new ArrayList<>();
     public static List<Double> allbalance = new ArrayList<>();
-
+    public static List<Double> highMipsRatioHistory = new ArrayList<>();
+    public static List<Double> allepochreward = new ArrayList<>();
 
     /**
      * Instantiates a new PowerDatacenter.
@@ -132,6 +135,9 @@ public class PowerDatacenterLearning extends PowerDatacenter {
             currentcpu += "0";
         }
         historycpu = currentcpu;
+        totalepochReward = 0.0;
+        totalSLAV = 0.0;
+        totalBalance = 0.0;
     }
 
     public void getReward() {
@@ -160,7 +166,7 @@ public class PowerDatacenterLearning extends PowerDatacenter {
 
             }
         }
-        double ss=totalreward;
+        totalepochReward += totalreward;
         currentcpu = convertCPUUtilization(cpulist);
         historycpu = convertCPUUtilization(historyList);
         vmAllocationAssignerLearning.createLastState_idx(historycpu);
@@ -236,6 +242,48 @@ public class PowerDatacenterLearning extends PowerDatacenter {
         System.out.println("meanUtil:" + meanUtil + " balanceDegreeVairance:" + balanceDegreeVairance + " activeHosts:" + activeHosts + " T_PERIOD:" + T_PERIOD + " BalanceDegree:" + BalanceDegree);   
         return BalanceDegree;
     }
+
+    
+    
+    private double calculateHighMipsRatio() {
+    int totalVmCount = getVmList().size();
+    int highMipsRatioVmCount = 0; // 计数满足条件的 VM 数量
+
+    if (totalVmCount == 0) {
+        return 0.0; // 避免除零错误
+    }
+
+    for (Vm vm : getVmList()) {
+        double requestedMips = vm.getCurrentRequestedTotalMips();
+        double allocatedMips = 0.0;
+
+        Host host = getVmAllocationPolicy().getHost(vm);
+        if (host != null) {
+            List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm);
+            if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+                for (double mips : allocatedMipsList) {
+                    allocatedMips += mips;
+                }
+            }
+        }
+
+        if (requestedMips > 0) {
+            double mipsRatio = allocatedMips / requestedMips;
+            if (mipsRatio > 0.8) {
+                highMipsRatioVmCount++; // 统计符合条件的 VM
+            }
+        System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips
+                + " allocatedMips: " + allocatedMips
+                + " mipsRatio: " + mipsRatio);
+        }
+    }
+
+    double highMipsRatioPercentage = (double) highMipsRatioVmCount / totalVmCount;
+
+    System.out.println("满足 (分配 MIPS / 请求 MIPS > 0.8) 的 VM 占比：" + (highMipsRatioPercentage * 100) + "%");
+
+    return highMipsRatioPercentage;
+}
 
 
     public String convertCPUUtilization(List<Double> cpuutils) {
@@ -480,6 +528,9 @@ public class PowerDatacenterLearning extends PowerDatacenter {
             allpower.add(getPower());
             allslav.add(totalSLAV);
             allbalance.add(totalBalance);
+            allepochreward.add(totalepochReward);
+            double highMipsRatio = calculateHighMipsRatio();
+            highMipsRatioHistory.add(highMipsRatio);
         }
         setLastProcessTime(currentTime);
         return minTime;

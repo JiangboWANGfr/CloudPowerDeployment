@@ -22,8 +22,8 @@ _, slav_data = read_data("./allslav.txt")
 _, balance_data = read_data("./allbalance.txt")
 
 # 定义算法标签
-algorithms = ["Q-Learning", "DDQN-LSTM", "Greedy", "PSO"]
-colors = ["#ED7C31", "#FFBF00", "#70AC46", "#9E480E"]
+algorithms = ["DDQN-LSTM","DDQN" ,"Q-Learning", "Greedy", "PSO"]
+colors = ["#ED7C31", "#FFBF00", "#70AC46", "#9E480E", "#997200"]
 x = np.arange(len(x_labels))  # X轴索引
 
 # 绘制柱状图
@@ -37,12 +37,12 @@ def plot_bar_chart(y_data, title, filename):
 
     plt.xlabel("虚拟机数量")
     plt.ylabel(title)
-    plt.title(f"各类算法随虚拟机数量的{title}变化")
+    # plt.title(f"各类算法随虚拟机数量的{title}变化")
     plt.xticks(x + width, x_labels)
     plt.legend()
     plt.grid(axis="y", linestyle="--", alpha=0.7)
     plt.legend(loc="upper center", bbox_to_anchor=(
-        0.5, -0.08), ncol=4, frameon=False)
+        0.5, -0.08), ncol=5, frameon=False)
 
 
     # 保存图像
@@ -51,6 +51,6 @@ def plot_bar_chart(y_data, title, filename):
 
 
 # 生成所有图表
-plot_bar_chart(power_data, "能耗", "power_comparison.png")
-plot_bar_chart(slav_data, "SLAV", "slav_comparison.png")
-plot_bar_chart(balance_data, "负载均衡", "balance_comparison.png")
+plot_bar_chart(power_data, "能耗(kWh)", "power_comparison.png")
+plot_bar_chart(slav_data, "SLAV(%)", "slav_comparison.png")
+plot_bar_chart(balance_data, "负载均衡度", "balance_comparison.png")

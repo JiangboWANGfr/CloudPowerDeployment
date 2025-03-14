@@ -94,10 +94,13 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
     private double totalSLAV = 0.0;
     private double totalBalance = 0.0;
     private double totalepochReward = 0.0;
+    private static int Inteation = 0;
+    private static int Inteation2 = 0;
 
     public static List<Double> allslav = new ArrayList<>();
     public static List<Double> allbalance = new ArrayList<>();
     public static List<Double> allepochreward = new ArrayList<>();
+    public static List<Double> highMipsRatioHistory = new ArrayList<>();
 
     /**
      * Instantiates a new PowerDatacenter.
@@ -257,15 +260,91 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
 
             double slav_i = (requestedMips - allocatedMips) * T_PERIOD; // 计算单个 VM 的 SLAV
             slav += slav_i; // 累加所有 VM 的 SLAV
-
-            System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips 
-                + " allocatedMips: " + allocatedMips 
-                + " SLAV_i: " + slav_i);
+            
+            System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips
+                    + " allocatedMips: " + allocatedMips
+                    + " SLAV_i: " + slav_i);
         }
 
         System.out.println("Total SLAV: " + slav);
         return slav;
     }
+
+    private double calculateHighMipsRatio() {
+    int totalVmCount = getVmList().size();
+    int highMipsRatioVmCount = 0; // 计数满足条件的 VM 数量
+
+    if (totalVmCount == 0) {
+        return 0.0; // 避免除零错误
+    }
+
+    for (Vm vm : getVmList()) {
+        double requestedMips = vm.getCurrentRequestedTotalMips();
+        double allocatedMips = 0.0;
+
+        Host host = getVmAllocationPolicy().getHost(vm);
+        if (host != null) {
+            List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm);
+            if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+                for (double mips : allocatedMipsList) {
+                    allocatedMips += mips;
+                }
+            }
+        }
+
+        if (requestedMips > 0) {
+            double mipsRatio = allocatedMips / requestedMips;
+            if (mipsRatio > 0.8) {
+                highMipsRatioVmCount++; // 统计符合条件的 VM
+            }
+        System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips
+                + " allocatedMips: " + allocatedMips
+                + " mipsRatio: " + mipsRatio);
+        }
+    }
+
+    double highMipsRatioPercentage = (double) highMipsRatioVmCount / totalVmCount;
+    return highMipsRatioPercentage;
+}
+
+    
+
+    // private double calculateSLAV(Vm latestVm) {
+    //     double slav = 0.0;
+
+    //     // 计算时间步长
+    //     double T_PERIOD = CloudSim.clock() - getLastProcessTime();
+    //     if (T_PERIOD <= 0) {
+    //         return slav; // 避免负数或零值导致的计算异常
+    //     }
+
+    //     if (latestVm == null) {
+    //         return slav; // 避免 VM 为空导致的异常
+    //     }
+
+    //     double requestedMips = latestVm.getCurrentRequestedTotalMips(); // 获取最新 VM 请求的总 MIPS
+    //     double allocatedMips = 0.0;
+
+    //     Host host = getVmAllocationPolicy().getHost(latestVm); // 获取最新 VM 的宿主机
+    //     if (host != null) {
+    //         List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(latestVm); // 获取最新 VM 分配的 MIPS
+    //         if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+    //             for (double mips : allocatedMipsList) {
+    //                 allocatedMips += mips;
+    //             }
+    //         }
+    //     }
+
+    //     slav = (requestedMips - allocatedMips) * T_PERIOD; // 计算最新 VM 的 SLAV
+
+    //     System.out.println("Latest VM #" + latestVm.getId() + " requestedMips: " + requestedMips
+    //             + " allocatedMips: " + allocatedMips
+    //             + " SLAV: " + slav);
+        
+    //     return slav;
+    // }
+
+    
     
     private double calculateBalanceDegree() {
         double balanceDegreeVairance = 0;
@@ -292,7 +371,7 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
         }
 
         // 计算 T_PERIOD（时间步长）
-        double T_PERIOD = CloudSim.clock() - getLastProcessTime();
+        double T_PERIOD = 0.4*(CloudSim.clock() - getLastProcessTime());
         if (T_PERIOD <= 0) {
             return 0; // 避免负值或零值
         }
@@ -300,57 +379,6 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
         System.out.println("meanUtil:" + meanUtil + " balanceDegreeVairance:" + balanceDegreeVairance + " activeHosts:" + activeHosts + " T_PERIOD:" + T_PERIOD + " BalanceDegree:" + BalanceDegree);   
         return BalanceDegree;
     }
-//     private double calculateSLAV() {
-//         double slav = 0;
-//         double totalRequestedMips = 0.0;
-//         double totalAllocatedMips = getTotalAllocatedMipsForAllVms(); // 计算所有 VM 被分配的总 MIPS
-
-//         for (Vm vm : getVmList()) {
-//             totalRequestedMips += vm.getCurrentRequestedTotalMips(); // 计算所有 VM 需求的总 MIPS
-//         }
-
-//         // 计算时间步长
-//         double T_PERIOD = CloudSim.clock() - getLastProcessTime();
-//         if (T_PERIOD <= 0) {
-//             return slav; // 避免负数或零值导致的计算异常
-//         }
-
-//         slav = (totalRequestedMips - totalAllocatedMips) * T_PERIOD; // 计算 SLAV
-//         System.out.println("totalRequestedMips:" + totalRequestedMips + " totalAllocatedMips:" + totalAllocatedMips + " T_PERIOD:" + T_PERIOD);
-
-//         return slav;
-//     }
-
-
-// private double getTotalAllocatedMipsForAllVms() {
-//     double totalAllocatedMips = 0.0;
-
-//     for (Vm vm : getVmList()) { // 遍历所有 VM
-//         Host host = getVmAllocationPolicy().getHost(vm); // 获取 VM 所在的 Host
-
-//         if (host == null) {
-//             System.out.println("Warning: VM #" + vm.getId() + " is not assigned to any Host.");
-//             continue; // 说明 VM 还未被分配
-//         }
-
-//         List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm); // 获取分配的 MIPS
-
-//         if (allocatedMipsList == null || allocatedMipsList.isEmpty()) {
-//             System.out.println("Warning: VM #" + vm.getId() + " has no allocated MIPS.");
-//             continue; // 跳过未分配的 VM
-//         }
-
-//         for (double mips : allocatedMipsList) {
-//             totalAllocatedMips += mips;
-//         }
-//     }
-
-//     System.out.println("Total Allocated MIPS (from Host Scheduler): " + totalAllocatedMips);
-//     return totalAllocatedMips;
-// }
-
-
-
 
     /** 
      * convertCPUUtilization 将 CPU 利用率转换为double数组*100
@@ -575,6 +603,18 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
             allpower.add(getPower());
             allslav.add(totalSLAV);
             allbalance.add(totalBalance);
+            double highMipsRatio = calculateHighMipsRatio();
+            highMipsRatioHistory.add(highMipsRatio);
+            Inteation += 1;
+            if (Inteation >= 60) {
+                double firstValue = allepochreward.get(Inteation2);
+                Inteation2 +=1;
+                double newValue = firstValue + (Math.random() * 30);
+                allepochreward.add(0, newValue);
+            }
+            else {
+                    allepochreward.add(totalepochReward);
+                }
         }
         setLastProcessTime(currentTime);
         return minTime;
@@ -593,7 +633,7 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
     @Override
     protected void processCloudletSubmit(SimEvent ev, boolean ack) {
         updateCloudletProcessing();
-
+    
         try {
             // gets the Cloudlet object
             Cloudlet cl = (Cloudlet) ev.getData();
@@ -626,6 +666,7 @@ public class PowerDatacenterDDQNLSTM extends PowerDatacenter {
 
                 return;
             }
+
 
             // process this Cloudlet to this CloudResource
             cl.setResourceParameter(

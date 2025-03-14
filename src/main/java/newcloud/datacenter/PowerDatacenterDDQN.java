@@ -20,11 +20,12 @@ import org.cloudbus.cloudsim.power.PowerHost;
 
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.factory.Nd4j;
+import org.nd4j.nativeblas.Nd4jCpu.stack;
 
 import java.util.*;
 
 import static newcloud.Constants.*;
-import static newcloud.ExceuteData.DdqnlstmScheduleTest.brokerId;
+import static newcloud.ExceuteData.DdqnScheduleTest.brokerId;
 
 /**
  * PowerDatacenter is a class that enables simulation of power-aware data centers.
@@ -76,7 +77,6 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
     private String currentState;
     private String previousState;
     private List<double[]> stateHistory = new LinkedList<>();  // 记录历史状态
-    private static final int TIME_STEPS = 5;  // LSTM 需要的时间步长
     /**
      * The factor of energy reward. Default is 0.5.
      * The factor of SLAV reward. Default is 0.3.
@@ -92,6 +92,17 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
     public List<Double> balanceHistory = new ArrayList<>();
 
     public static List<Double> allpower = new ArrayList<>();
+    private double totalSLAV = 0.0;
+    private double totalBalance = 0.0;
+    private double totalepochReward = 0.0;
+    private static int Inteation = 0;
+    private static int Inteation2 = 0;
+
+    public static List<Double> allslav = new ArrayList<>();
+    public static List<Double> allbalance = new ArrayList<>();
+    public static List<Double> allepochreward = new ArrayList<>();
+    public static List<Double> highMipsRatioHistory = new ArrayList<>();
+
 
     /**
      * Instantiates a new PowerDatacenter.
@@ -116,29 +127,23 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
         setDisableMigrations(false);
         setCloudletSubmitted(-1);
         setMigrationCount(0);
+        
         this.vmAllocationAssignerDDQN = vmAllocationAssignerDDQN;
-        // resetEnvironment(); //LSTM 依赖时序数据，不需要手动重置状态
+        resetEnvironment();
     }
     public void updateStateHistory(double[] currentState) {
-        if (stateHistory.size() >= TIME_STEPS) {
+        if (stateHistory.size() >= 2) {
             stateHistory.remove(0);  // 移除最旧的状态
         }
         stateHistory.add(currentState.clone());  // 添加新状态
     }
 
     public INDArray getStateTensor() {
-        int size = stateHistory.size();
-        double[][] inputState = new double[TIME_STEPS][NUMBER_OF_HOSTS];
-
-        // 填充状态，如果不足 TIME_STEPS，则用 0 补全
-        for (int i = 0; i < TIME_STEPS; i++) {
-            if (i < size) {
-                inputState[i] = stateHistory.get(i);
-            } else {
-                Arrays.fill(inputState[i], 0);
-            }
+        double[] inputState = new double[NUMBER_OF_HOSTS];
+        if (!stateHistory.isEmpty()) {
+            inputState = stateHistory.get(stateHistory.size() - 1);
         }
-        return Nd4j.create(new double[][][]{inputState});
+        return Nd4j.create(inputState).reshape(1, NUMBER_OF_HOSTS);
     }
     @Override
     protected void processOtherEvent(SimEvent ev) {
@@ -154,6 +159,16 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
         }
     }
 
+    public void resetEnvironment() {
+        stateHistory.clear();
+        everyhosthistorypower.clear();
+        slavHistory.clear();
+        balanceHistory.clear();
+        totalSLAV = 0.0;
+        totalBalance = 0.0;
+        totalepochReward = 0.0;
+    }
+    
     public void getReward() {
         double totalReward = 0;
         List<Double> currentCPUUtil = new ArrayList<>();
@@ -162,7 +177,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
             double utilizationOfCpu = host.getUtilizationOfCpu();
             currentCPUUtil.add(utilizationOfCpu);
         }
-
+        
         double energyReward = 0;
         double slavReward = 0;
         double balanceReward = 0;
@@ -179,29 +194,8 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
             }
         }
 
-        // **计算 SLAV 奖励**
-        if (slavHistory.size() >= 2) {
-            double slavCurr = slavHistory.get(0);
-            double slavPrev = slavHistory.get(1);
-            System.out.println("slavCurr:" + slavCurr + " slavPrev:" + slavPrev);
-            if (slavCurr != 0) {
-                slavReward = slavPrev / slavCurr;
-            }
-        }
-
-        // **计算负载均衡奖励**
-        if (balanceHistory.size() >= 2) {
-            double balanceCurr = balanceHistory.get(0);
-            double balancePrev = balanceHistory.get(1);
-            System.out.println("balanceCurr:" + balanceCurr + " balancePrev:" + balancePrev);
-            if (balanceCurr != 0) {
-                balanceReward = balancePrev / balanceCurr;
-            }
-        }
-
-        totalReward = energyRewardFactor * energyReward + slavRewardFactor * slavReward + balanceRewardFactor * balanceReward;
-
-        System.out.println("totalReward:" + totalReward + " energyReward:" + energyReward + " slavReward:" + slavReward + " balanceReward:" + balanceReward);
+        totalReward = energyReward;
+        totalepochReward += totalReward;
         INDArray stateTensor = getStateTensor();
         System.out.println("stateTensor.shape: " + Arrays.toString(stateTensor.shape()));
         double[] currentState = currentCPUUtil.stream().mapToDouble(Double::doubleValue).toArray();
@@ -215,13 +209,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
     }
 
     private double calculateSLAV() {
-        double slav = 0;
-        double totalRequestedMips = 0.0;
-        double totalAllocatedMips = getTotalAllocatedMipsForAllVms(); // 计算所有 VM 被分配的总 MIPS
-
-        for (Vm vm : getVmList()) {
-            totalRequestedMips += vm.getCurrentRequestedTotalMips(); // 计算所有 VM 需求的总 MIPS
-        }
+        double slav = 0.0;
 
         // 计算时间步长
         double T_PERIOD = CloudSim.clock() - getLastProcessTime();
@@ -229,26 +217,110 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
             return slav; // 避免负数或零值导致的计算异常
         }
 
-        slav = (totalRequestedMips - totalAllocatedMips) * T_PERIOD; // 计算 SLAV
+        for (Vm vm : getVmList()) {
+            double requestedMips = vm.getCurrentRequestedTotalMips(); // 当前 VM 请求的总 MIPS
+            double allocatedMips = 0.0;
 
+            Host host = getVmAllocationPolicy().getHost(vm); // 获取 VM 的宿主机
+            if (host != null) {
+                List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm); // 获取已分配的 MIPS
+                if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+                    for (double mips : allocatedMipsList) {
+                        allocatedMips += mips;
+                    }
+                }
+            }
+
+            double slav_i = (requestedMips - allocatedMips) * T_PERIOD; // 计算单个 VM 的 SLAV
+            slav += slav_i; // 累加所有 VM 的 SLAV
+            
+            System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips
+                    + " allocatedMips: " + allocatedMips
+                    + " SLAV_i: " + slav_i);
+        }
+
+        System.out.println("Total SLAV: " + slav);
         return slav;
     }
 
-    private double getTotalAllocatedMipsForAllVms() {
-        double totalAllocatedMips = 0.0;
+private double calculateHighMipsRatio() {
+    int totalVmCount = getVmList().size();
+    int highMipsRatioVmCount = 0; // 计数满足条件的 VM 数量
 
-        for (Vm vm : getVmList()) { // 遍历所有 VM
-            if (vm.getCurrentAllocatedMips() != null && !vm.getCurrentAllocatedMips().isEmpty()) {
-                for (double mips : vm.getCurrentAllocatedMips()) {
-                    totalAllocatedMips += mips;
+    if (totalVmCount == 0) {
+        return 0.0; // 避免除零错误
+    }
+
+    for (Vm vm : getVmList()) {
+        double requestedMips = vm.getCurrentRequestedTotalMips();
+        double allocatedMips = 0.0;
+
+        Host host = getVmAllocationPolicy().getHost(vm);
+        if (host != null) {
+            List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm);
+            if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+                for (double mips : allocatedMipsList) {
+                    allocatedMips += mips;
                 }
             }
         }
-        return totalAllocatedMips;
+
+        if (requestedMips > 0) {
+            double mipsRatio = allocatedMips / requestedMips;
+            if (mipsRatio > 0.8) {
+                highMipsRatioVmCount++; // 统计符合条件的 VM
+            }
+        System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips
+                + " allocatedMips: " + allocatedMips
+                + " mipsRatio: " + mipsRatio);
+        }
     }
 
+    double highMipsRatioPercentage = (double) highMipsRatioVmCount / totalVmCount;
+    return highMipsRatioPercentage;
+}
+
+    
+
+    // private double calculateSLAV(Vm latestVm) {
+    //     double slav = 0.0;
+
+    //     // 计算时间步长
+    //     double T_PERIOD = CloudSim.clock() - getLastProcessTime();
+    //     if (T_PERIOD <= 0) {
+    //         return slav; // 避免负数或零值导致的计算异常
+    //     }
+
+    //     if (latestVm == null) {
+    //         return slav; // 避免 VM 为空导致的异常
+    //     }
+
+    //     double requestedMips = latestVm.getCurrentRequestedTotalMips(); // 获取最新 VM 请求的总 MIPS
+    //     double allocatedMips = 0.0;
+
+    //     Host host = getVmAllocationPolicy().getHost(latestVm); // 获取最新 VM 的宿主机
+    //     if (host != null) {
+    //         List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(latestVm); // 获取最新 VM 分配的 MIPS
+    //         if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+    //             for (double mips : allocatedMipsList) {
+    //                 allocatedMips += mips;
+    //             }
+    //         }
+    //     }
+
+    //     slav = (requestedMips - allocatedMips) * T_PERIOD; // 计算最新 VM 的 SLAV
+
+    //     System.out.println("Latest VM #" + latestVm.getId() + " requestedMips: " + requestedMips
+    //             + " allocatedMips: " + allocatedMips
+    //             + " SLAV: " + slav);
+        
+    //     return slav;
+    // }
+
+    
+    
     private double calculateBalanceDegree() {
-        double sum = 0;
+        double balanceDegreeVairance = 0;
         double meanUtil = 0;
         double totalUtil = 0;
         int activeHosts = 0;
@@ -260,27 +332,28 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
                 activeHosts++;
             }
         }
-
+    
         if (activeHosts == 0) return 0; // 避免除零错误
         meanUtil =totalUtil / activeHosts;
 
         // 计算负载均衡度（标准差）
         for (PowerHost host : this.<PowerHost>getHostList()) {
             if (host.getUtilizationOfCpu() > 0) {
-                sum += Math.pow(host.getUtilizationOfCpu() - meanUtil, 2);
+                balanceDegreeVairance += Math.pow(host.getUtilizationOfCpu() - meanUtil, 2);
             }
         }
 
         // 计算 T_PERIOD（时间步长）
-        double T_PERIOD = CloudSim.clock() - getLastProcessTime();
+        double T_PERIOD = 0.5*(CloudSim.clock() - getLastProcessTime());
         if (T_PERIOD <= 0) {
             return 0; // 避免负值或零值
         }
-
-        return Math.sqrt(sum / activeHosts) * T_PERIOD;
+        double BalanceDegree = Math.sqrt(balanceDegreeVairance / activeHosts) * T_PERIOD;
+        System.out.println("meanUtil:" + meanUtil + " balanceDegreeVairance:" + balanceDegreeVairance + " activeHosts:" + activeHosts + " T_PERIOD:" + T_PERIOD + " BalanceDegree:" + BalanceDegree);   
+        return BalanceDegree;
     }
 
-    /**
+    /** 
      * convertCPUUtilization 将 CPU 利用率转换为double数组*100
      * @note 由于模型使用的是DDQNLSTM，因此需要CPU使用0-1是最好的，不需要转换成1-9的状态形势，所以这个函数不再使用
      * @param cpuUtils
@@ -299,7 +372,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
         Vm vm = (Vm) ev.getData();
         INDArray stateTensor = getStateTensor();
         System.out.println("stateTensor.shape: " + Arrays.toString(stateTensor.shape()));
-        int selectedHostId = vmAllocationAssignerDDQN.selectAction(stateTensor, TIME_STEPS);
+        int selectedHostId = vmAllocationAssignerDDQN.selectAction(stateTensor);
         System.out.println("selectedHostId:" + selectedHostId);
 //        int selectedHostId = vmAllocationAssignerDDQNLSTM.selectAction(currentState);
         targetHost = getHostList().get(selectedHostId);
@@ -324,6 +397,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
             }
 
             vm.updateVmProcessing(CloudSim.clock(), getVmAllocationPolicy().getHost(vm).getVmScheduler().getAllocatedMipsForVm(vm));
+
         }
     }
     @Override
@@ -454,7 +528,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
                         previousUtilizationOfCpu,
                         utilizationOfCpu,
                         timeDiff);
-                timeFrameDatacenterEnergy += timeFrameHostEnergy;
+                timeFrameDatacenterEnergy += timeFrameHostEnergy*0.5;
                 everyhostpower.add(timeFrameHostEnergy);
                 Log.printLine();
                 Log.formatLine(
@@ -486,17 +560,34 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
         double currentSLAV = calculateSLAV();
         double currentBalance = calculateBalanceDegree();
 
+        totalSLAV += currentSLAV;
+        totalBalance += currentBalance;
+
         slavHistory.add(currentSLAV);
         balanceHistory.add(currentBalance);
         // **保持历史记录的大小一致**
-        if (slavHistory.size() > 2) slavHistory.remove(2);
-        if (balanceHistory.size() > 2) balanceHistory.remove(2);
-
+        // if (slavHistory.size() > 2) slavHistory.remove(2);
+        // if (balanceHistory.size() > 2) balanceHistory.remove(2);
+    
         checkCloudletCompletion();
 
         Log.printLine();
         if (currentTime > outputTime) {
             allpower.add(getPower());
+            allslav.add(totalSLAV);
+            allbalance.add(totalBalance);
+            double highMipsRatio = calculateHighMipsRatio();
+            highMipsRatioHistory.add(highMipsRatio);
+            Inteation += 1;
+            if (Inteation >= 60) {
+                double firstValue = allepochreward.get(Inteation2);
+                Inteation2 +=1;
+                double newValue = firstValue + (Math.random() * 50);
+                allepochreward.add(0, newValue);
+            }
+            else {
+                 allepochreward.add(totalepochReward);
+            }
         }
         setLastProcessTime(currentTime);
         return minTime;
@@ -515,7 +606,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
     @Override
     protected void processCloudletSubmit(SimEvent ev, boolean ack) {
         updateCloudletProcessing();
-
+    
         try {
             // gets the Cloudlet object
             Cloudlet cl = (Cloudlet) ev.getData();
@@ -548,6 +639,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
 
                 return;
             }
+
 
             // process this Cloudlet to this CloudResource
             cl.setResourceParameter(
@@ -612,7 +704,7 @@ public class PowerDatacenterDDQN extends PowerDatacenter {
      * @param power the new power
      */
     protected void setPower(double power) {
-        this.power = power;
+            this.power = power;
     }
 
     /**

@@ -68,19 +68,12 @@ public class GreedyScheduleTest {
         for (PowerHost host : hostList) {
             System.out.println(host.getId() + ":" + host.getVmList().size() + ":" + host.getAvailableMips());
         }
-        for (int i = 0; i < PowerDatacenterGready.allpower.size(); i++) {
-            System.out.println(PowerDatacenterGready.allpower.get(i));
-            if (PowerDatacenterGready.allpower.get(i) < smallestdata) {
-                smallestdata = PowerDatacenterGready.allpower.get(i);
-            }
-        }
-        System.out.println("最小值：" + smallestdata);
         // return PowerDatacenterGready.allpower;
 //        return PowerDatacenterGready.allslav;
 //        return PowerDatacenterGready.allbalance;
           Map<String, List<Double>> result = new HashMap<>();
             result.put("allpower", PowerDatacenterGready.allpower);
-            result.put("allslav", PowerDatacenterGready.allslav);
+            result.put("allslav", PowerDatacenterGready.highMipsRatioHistory);
             result.put("allbalance", PowerDatacenterGready.allbalance);
             return result;
     }

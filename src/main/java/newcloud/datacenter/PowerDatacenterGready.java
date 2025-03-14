@@ -81,6 +81,7 @@ public class PowerDatacenterGready extends PowerDatacenter {
 
     public static List<Double> allslav = new ArrayList<>();
     public static List<Double> allbalance = new ArrayList<>();
+    public static List<Double> highMipsRatioHistory = new ArrayList<>();
 
 
     /**
@@ -170,9 +171,10 @@ public class PowerDatacenterGready extends PowerDatacenter {
                 activeHosts++;
             }
         }
-    
-        if (activeHosts == 0) return 0; // 避免除零错误
-        meanUtil =totalUtil / activeHosts;
+
+        if (activeHosts == 0)
+            return 0; // 避免除零错误
+        meanUtil = totalUtil / activeHosts;
 
         // 计算负载均衡度（标准差）
         for (PowerHost host : this.<PowerHost>getHostList()) {
@@ -187,9 +189,51 @@ public class PowerDatacenterGready extends PowerDatacenter {
             return 0; // 避免负值或零值
         }
         double BalanceDegree = Math.sqrt(balanceDegreeVairance / activeHosts) * T_PERIOD;
-        System.out.println("meanUtil:" + meanUtil + " balanceDegreeVairance:" + balanceDegreeVairance + " activeHosts:" + activeHosts + " T_PERIOD:" + T_PERIOD + " BalanceDegree:" + BalanceDegree);   
+        System.out.println("meanUtil:" + meanUtil + " balanceDegreeVairance:" + balanceDegreeVairance + " activeHosts:"
+                + activeHosts + " T_PERIOD:" + T_PERIOD + " BalanceDegree:" + BalanceDegree);
         return BalanceDegree;
     }
+    
+    private double calculateHighMipsRatio() {
+    int totalVmCount = getVmList().size();
+    int highMipsRatioVmCount = 0; // 计数满足条件的 VM 数量
+
+    if (totalVmCount == 0) {
+        return 0.0; // 避免除零错误
+    }
+
+    for (Vm vm : getVmList()) {
+        double requestedMips = vm.getCurrentRequestedTotalMips();
+        double allocatedMips = 0.0;
+
+        Host host = getVmAllocationPolicy().getHost(vm);
+        if (host != null) {
+            List<Double> allocatedMipsList = host.getVmScheduler().getAllocatedMipsForVm(vm);
+            if (allocatedMipsList != null && !allocatedMipsList.isEmpty()) {
+                for (double mips : allocatedMipsList) {
+                    allocatedMips += mips;
+                }
+            }
+        }
+
+        if (requestedMips > 0) {
+            double mipsRatio = allocatedMips / requestedMips;
+            if (mipsRatio > 0.8) {
+                highMipsRatioVmCount++; // 统计符合条件的 VM
+            }
+        System.out.println("VM #" + vm.getId() + " requestedMips: " + requestedMips
+                + " allocatedMips: " + allocatedMips
+                + " mipsRatio: " + mipsRatio);
+        }
+    }
+
+    double highMipsRatioPercentage = (double) highMipsRatioVmCount / totalVmCount;
+
+    System.out.println("满足 (分配 MIPS / 请求 MIPS > 0.8) 的 VM 占比：" + (highMipsRatioPercentage * 100) + "%");
+
+    return highMipsRatioPercentage;
+}
+
 
     @Override
     protected void processVmCreate(SimEvent ev, boolean ack) {
@@ -226,6 +270,7 @@ public class PowerDatacenterGready extends PowerDatacenter {
         }
 
     }
+
 
     @Override
     protected void updateCloudletProcessing() {
@@ -391,6 +436,9 @@ public class PowerDatacenterGready extends PowerDatacenter {
             allpower.add(getPower());
             allslav.add(totalSLAV);
             allbalance.add(totalBalance);
+            double highMipsRatio = calculateHighMipsRatio();
+            highMipsRatioHistory.add(highMipsRatio);
+
         }
         /** Remove completed VMs **/
 //        for (PowerHost host : this.<PowerHost>getHostList()) {

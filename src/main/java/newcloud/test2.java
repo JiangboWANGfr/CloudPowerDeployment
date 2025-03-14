@@ -1,6 +1,6 @@
 package newcloud;
 
-import newcloud.ExceuteData.DdqnlstmScheduleTest;
+import newcloud.ExceuteData.DdqnScheduleTest;
 
 import java.util.List;
 import java.util.Map;
@@ -18,8 +18,8 @@ public class test2 {
 //        List<Double> learningPowerList = learningScheduleTest.execute();
 //        DDQNLSTMScheduleTest1 ddqnlstmscheduletest = new DDQNLSTMScheduleTest1();
 //         List<Double> learningPowerList = ddqnlstmscheduletest.execute();
-        DdqnlstmScheduleTest test = new DdqnlstmScheduleTest();
-        Map<String, List<Double>> learningPowerlist = test.execute();
+        DdqnScheduleTest test = new DdqnScheduleTest();
+//        List<Double>  learningPowerlist = test.execute();
 //        for (int i = 0; i < learningPowerList.size(); i++) {
 //            total += learningPowerList.get(i);
 //        }

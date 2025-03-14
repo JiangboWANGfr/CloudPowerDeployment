@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 import static newcloud.Constants.*;
-import static newcloud.ExceuteData.DDQNLSTMScheduleTest1.brokerId;
+import static newcloud.ExceuteData.DdqnScheduleTest.brokerId;
 
 
 /**
