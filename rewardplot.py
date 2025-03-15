@@ -29,7 +29,6 @@ plt.ylabel("Reward")
 plt.title("DDQNLSTM vs. DDQN Reward Comparison")
 plt.legend()
 plt.grid(True)
-
+plt.savefig("reward_comparison.png")
 # 显示图像
 plt.show()
-plt.savefig("reward_comparison.png")
